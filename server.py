@@ -142,10 +142,10 @@ def future_query_n_days(query, n_days):
     predictive_model._train(x, y)
 
     for i in range(n_days):
-        prediction = predictive_model.predict(np.array([n_days + i]))
-        predictions.append(int(prediction[0]))
 
-    # add future dates
+        prediction = predictive_model.predict(np.array([n_days + i]))
+        predictions.append(float(prediction[0]))
+
     future_dates = get_future_dates(n_days)
     dates.append([date for date in future_dates])
 
