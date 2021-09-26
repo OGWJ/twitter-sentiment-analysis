@@ -3,6 +3,7 @@ from textblob import TextBlob
 import tweepy
 from dotenv import dotenv_values
 from datetime import datetime, timedelta
+import math
 
 
 app = Flask(__name__)
@@ -44,12 +45,10 @@ class Twitter_API_Controller:
         return tweepy.API(auth)
 
     def get_tweets(self, query, count=1, 
-                   since=today,
                    until=today):
 
         tweets = tweepy.Cursor(self.api.search,
         q=query,
-        # since=since,
         until=until,
         result_type='recent',
         lang='en').items(count)
@@ -79,9 +78,8 @@ def get_sentiment(tweets):
 
 
 
-# GET today default count is 10
-@app.route("/<query>")
-def index_query(query):
+@app.route("sentiment/<query>")
+def sentiment_query(query):
 
     tweets = twitter_api_controller.get_tweets(query) 
     sentiment = get_sentiment(tweets)
@@ -89,14 +87,16 @@ def index_query(query):
     return str(sentiment)
 
 
-# GET past 7 days
-@app.route("/<query>/<n_days>")
-def index_query_n_days(query, n_days):
+@app.route("sentiment/<query>/<n_days>")
+def sentiment_query_n_days(query, n_days):
+
+    if not n_days.isdigit():
+        return 'Error: n_days must be an integer in the range 1 <= 7'
 
     n_days = int(n_days)
 
     if n_days > 7:
-        return 'Error: days prior must be <= 7'
+        return 'Error: n_days must be <= 7'
 
     dates = get_days_prior(n_days)
     data = []
