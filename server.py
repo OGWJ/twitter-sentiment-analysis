@@ -159,5 +159,5 @@ def future_query_n_days(query, n_days):
 if __name__ == "__main__":
     config = dotenv_values('.env')
     twitter_api_controller = Twitter_API_Controller(config)
-    predictive_model = model.Model()
+    predictive_model = model.Model(save=True, load=True)
     app.run(debug=True, port=5000)
