@@ -4,7 +4,9 @@ import tweepy
 from dotenv import dotenv_values
 from datetime import datetime, timedelta
 import math
+import numpy as np
 
+import model
 
 app = Flask(__name__)
 twitter_api_controller = None
@@ -62,8 +64,6 @@ def get_sentiment(tweets):
 
     for tweet in tweets:
 
-        print(f'\n{tweet.created_at}\n{tweet.text}')
-
         blob = TextBlob(tweet.text)
         tweet_sentiment = 0
         n_tweets += 1
@@ -77,8 +77,7 @@ def get_sentiment(tweets):
     return avg_sentiment_polarity / n_tweets
 
 
-
-@app.route("sentiment/<query>")
+@app.route("/sentiment/<query>")
 def sentiment_query(query):
 
     tweets = twitter_api_controller.get_tweets(query) 
@@ -87,7 +86,7 @@ def sentiment_query(query):
     return str(sentiment)
 
 
-@app.route("sentiment/<query>/<n_days>")
+@app.route("/sentiment/<query>/<n_days>")
 def sentiment_query_n_days(query, n_days):
 
     if not n_days.isdigit():
@@ -109,7 +108,56 @@ def sentiment_query_n_days(query, n_days):
     return str(data)
 
 
+def format_date(date):
+    return date.strftime('%Y-%m-%d')
+
+
+def get_future_dates(n_days):
+    yyyy, mm, dd = today.split('-')
+    tomorrow = datetime(int(yyyy), int(mm), int(dd)) + timedelta(1)
+    dates = [tomorrow]
+    for i in range(n_days - 1):
+        next_day = dates[i] + timedelta(1)
+        dates.append(next_day)
+    
+    return [format_date(date) for date in dates]
+
+
+@app.route("/future/<query>/<n_days>")
+def future_query_n_days(query, n_days):
+
+    n_days = int(n_days)
+    dates = get_days_prior(n_days)
+    data = []
+
+    for date in dates:
+        tweets = twitter_api_controller.get_tweets(query, until=date)
+        sentiment = get_sentiment(tweets)
+        data.append((date, sentiment))
+
+    x = np.array([i for i in range(n_days + 1)])
+    y = np.array([sentiment for _, sentiment in data])
+    predictions = []
+
+    predictive_model._train(x, y)
+
+    for i in range(n_days):
+        prediction = predictive_model.predict(np.array([n_days + i]))
+        predictions.append(int(prediction[0]))
+
+    # add future dates
+    future_dates = get_future_dates(n_days)
+    dates.append([date for date in future_dates])
+
+    future_data = list(zip([date for date in future_dates], predictions))
+    for i in range(len(future_data)):
+        data.append(future_data[i])
+    
+    return str(data)
+
+
 if __name__ == "__main__":
     config = dotenv_values('.env')
     twitter_api_controller = Twitter_API_Controller(config)
+    predictive_model = model.Model()
     app.run(debug=True, port=5000)
