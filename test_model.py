@@ -2,12 +2,23 @@ import pytest
 from unittest import mock
 from model import Model
 import numpy
+from tensorflow.keras.models import Sequential, load_model
 
-# initialise a model for testing
+# init model for testing
 model = Model()
 
+# mock Keras functions
+load_model = mock.MagicMock(name='load_model')
+
+def test_init():
+    assert model.history == None
+    assert model.save == False
+    return
+
+#@patch(tesnroflow.keras.models) todo
 def test_load():
-    # mock file
+    # model._load_model()
+    # load_model.assert_called_once()
     # should call keras method
     # should return instance of keras model or expected
     #model = Model(load=False, save=False)

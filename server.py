@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-#from flask_cors import CORS
+from flask_cors import CORS
 from textblob import TextBlob
 import tweepy
 from dotenv import dotenv_values
@@ -15,8 +15,8 @@ from controller import TwitterApiController
 from date_utils import *
 
 app = Flask(__name__)
-#CORS(app)
-#app.wsgi_app = QueryChecker(app.wsgi_app)
+CORS(app)
+app.wsgi_app = QueryChecker(app.wsgi_app)
 
 
 # GET sentiment for query today
@@ -118,7 +118,7 @@ def future_query_n_days(query, n_days):
 
 # Error handlling
 @app.errorhandler(exceptions.NotFound)
-def error_404():
+def error_404(err):
     return jsonify({"message": 'valid routes are...'})
 
 @app.errorhandler(exceptions.InternalServerError)
