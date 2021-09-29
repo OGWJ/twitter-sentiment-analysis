@@ -26,3 +26,16 @@ def get_days_prior(n_days):
 
 def format_date(date):
     return date.strftime('%Y-%m-%d')
+
+
+def get_future_dates(n_days):
+    yyyy, mm, dd = today.split('-')
+    tomorrow = datetime(int(yyyy), int(mm), int(dd)) + timedelta(1)
+    dates = [tomorrow]
+    for i in range(n_days - 1):
+        next_day = dates[i] + timedelta(1)
+        dates.append(next_day)
+
+    return [format_date(date) for date in dates]
+
+
