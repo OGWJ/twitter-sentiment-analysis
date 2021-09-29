@@ -7,7 +7,7 @@ name = "pypi"
 start = "gunicorn app:app"
 dev = "bash -c \"export FLASK_ENV='development' && python server.py\""
 test = "pytest --disable-warnings"
-coverage = "coverage run test_server.py"
+coverage = "pytest --cov-report term-missing --cov=. --disable-warnings"
 
 [packages]
 flask = "==2.0.1"
