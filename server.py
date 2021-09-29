@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-#from flask_cors import CORS
+from flask_cors import CORS
 from textblob import TextBlob
 import tweepy
 from dotenv import dotenv_values
@@ -15,11 +15,11 @@ from controller import TwitterApiController
 from date_utils import *
 
 app = Flask(__name__)
-#CORS(app)
+CORS(app)
 #app.wsgi_app = QueryChecker(app.wsgi_app)
 
 
-# GET sentiment for query TODAY
+# GET sentiment for query today
 @app.route("/sentiment/<query>", methods=['GET'])
 def sentiment_query(query):
 
@@ -29,7 +29,7 @@ def sentiment_query(query):
     return str(sentiment)
 
 
-# GET sentiment
+# GET sentiment for query on consecutive n_days in the past
 @app.route("/sentiment/<query>/<n_days>", methods=['GET'])
 def sentiment_query_n_days(query, n_days):
 
@@ -51,27 +51,48 @@ def sentiment_query_n_days(query, n_days):
 
     return str(data)
 
-
+# GET predicted sentiment for query on consecutive n_days into the future
 @app.route("/future/<query>/<n_days>", methods=['GET'])
 def future_query_n_days(query, n_days):
 
+    # test call with 
+    # curl --header "Content-Type: application/json" \
+    # --request GET \
+    # --data '{"provided":[{"date":"2021-12-21","sentiment":0.5}]' \
+    # http://localhost:5000/future/test/5
+
     n_days = int(n_days)
     dates = get_days_prior(n_days)
-    data = []
+    # check request body for provided existing sentiment data
+    provided_data = request.get_json()['provided']
+    print(provided_data)
+    # NOTE, TODO: check in middleware for valid structure of request body before reaching this point
+    
+    missing_dates = dates
+    for day in provided_data:
+        if day['date'] in missing_dates:
+            missing_dates.remove(day['date'])
+        else:
+            # is not day in range or valid day?
+            print('invalid day')
 
-    for date in dates:
+    data = [(d['date'], d['sentiment']) for d in provided_data]
+
+    #patch missing data
+    for date in missing_dates:
         tweets = tweepy_controller.get_tweets(query, until=date)
         sentiment = tweepy_controller.get_sentiment(tweets)
         data.append((date, sentiment))
 
     x = np.array([i for i in range(n_days + 1)])
     y = np.array([sentiment for _, sentiment in data])
-    predictions = []
+
+    #return f'{sorted(data)}'
 
     predictive_model._train(x, y)
+    predictions = []
 
     for i in range(n_days):
-
         prediction = predictive_model.predict(np.array([n_days + i]))
         predictions.append(float(prediction[0]))
 
@@ -79,13 +100,13 @@ def future_query_n_days(query, n_days):
     dates.append([date for date in future_dates])
 
     future_data = list(zip([date for date in future_dates], predictions))
+
+    completed_data = data
+
     for i in range(len(future_data)):
-        data.append(future_data[i])
+        completed_data.append(future_data[i])
 
-    return str(data)
-
-
-# route should be passed existing data from db when
+    return str(completed_data)
 
 
 
