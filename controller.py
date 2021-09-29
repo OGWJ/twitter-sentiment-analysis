@@ -1,5 +1,6 @@
 from date_utils import today
 import tweepy
+from textblob import TextBlob
 
 class TwitterApiController:
 
@@ -28,23 +29,23 @@ class TwitterApiController:
         return tweets
 
 
-def get_sentiment(tweets):
+    def get_sentiment(self, tweets):
 
-    avg_sentiment_polarity = 0
-    n_tweets = 0
+        avg_sentiment_polarity = 0
+        n_tweets = 0
 
-    for tweet in tweets:
+        for tweet in tweets:
 
-        blob = TextBlob(tweet.text)
-        tweet_sentiment = 0
-        n_tweets += 1
+            blob = TextBlob(tweet.text)
+            tweet_sentiment = 0
+            n_tweets += 1
 
-        for sentence in blob.sentences:
-            tweet_sentiment += sentence.sentiment.polarity
+            for sentence in blob.sentences:
+                tweet_sentiment += sentence.sentiment.polarity
 
-            tweet_sentiment /= len(blob.sentences)
-            avg_sentiment_polarity += tweet_sentiment
+                tweet_sentiment /= len(blob.sentences)
+                avg_sentiment_polarity += tweet_sentiment
 
-    return avg_sentiment_polarity / n_tweets
+        return avg_sentiment_polarity / n_tweets
 
 

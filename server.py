@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
-#from flask_cors import CORS
+from flask_cors import CORS
 from textblob import TextBlob
-#import tweepy
+import tweepy
 from dotenv import dotenv_values
 from datetime import datetime, timedelta
 import math
@@ -15,8 +15,8 @@ from controller import TwitterApiController
 from date_utils import *
 
 app = Flask(__name__)
-#CORS(app)
-app.wsgi_app = QueryChecker(app.wsgi_app)
+CORS(app)
+#app.wsgi_app = QueryChecker(app.wsgi_app)
 
 twitter_api_controller = None
 nlp = None
@@ -25,8 +25,10 @@ nlp = None
 @app.route("/sentiment/<query>")
 def sentiment_query(query):
 
-    tweets = controller.get_tweets(query)
-    sentiment = get_sentiment(tweets)
+    print('query is', query)
+
+    tweets = tweepy_controller.get_tweets(query)
+    sentiment = tweepy_controller.get_sentiment(tweets)
 
     return str(sentiment)
 
@@ -46,8 +48,8 @@ def sentiment_query_n_days(query, n_days):
     data = []
 
     for date in dates:
-        tweets = twitter_api_controller.get_tweets(query, until=date)
-        sentiment = get_sentiment(tweets)
+        tweets = tweepy_controller.get_tweets(query, until=date)
+        sentiment = tweepy_controller.get_sentiment(tweets)
         data.append((date, sentiment))
 
     return str(data)
@@ -72,8 +74,8 @@ def future_query_n_days(query, n_days):
     data = []
 
     for date in dates:
-        tweets = twitter_api_controller.get_tweets(query, until=date)
-        sentiment = get_sentiment(tweets)
+        tweets = tweepy_controller.get_tweets(query, until=date)
+        sentiment = tweepy_controller.get_sentiment(tweets)
         data.append((date, sentiment))
 
     x = np.array([i for i in range(n_days + 1)])
@@ -108,6 +110,6 @@ def error_500(err):
 
 if __name__ == "__main__":
     config = dotenv_values('.env')
-    controller = TwitterApiController(config)
+    tweepy_controller = TwitterApiController(config)
     predictive_model = model.Model(save=True, load=False)
     app.run(debug=True, port=5000)

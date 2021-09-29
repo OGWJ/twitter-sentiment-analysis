@@ -24,6 +24,8 @@ class QueryChecker:
 
     def is_valid_query(self, query):
 
+        print('query is ', query)
+
         if len(query) > 500 or len(query) < 1:
             return False
 
