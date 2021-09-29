@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[scripts]
+start = "gunicorn app:app"
+dev = "bash -c \"export FLASK_ENV='development' && python server.py\""
+test = "pytest --disable-warnings"
+coverage = "coverage run test_server.py"
+
+[packages]
+flask = "==2.0.1"
+textblob = "==0.15.3"
+python-dotenv = "==0.19.0"
+werkzeug = "*"
+tensorflow = "*"
+middleware = "*"
+tweepy = "*"
+flask-cors = "*"
+pandas = "*"
+
+[dev-packages]
+pytest-cov = "*"
+
+[requires]
+python_version = "3.9"

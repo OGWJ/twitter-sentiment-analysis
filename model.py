@@ -47,7 +47,7 @@ class Model:
         model.compile(loss='mean_absolute_error', optimizer='adam')
         print('\rfinished building model')
         return model
-    
+
 
     def _train(self, x, y):
         print('* training model...')
@@ -57,6 +57,6 @@ class Model:
         print('\rfinsihed training model')
         return
 
-    
+
     def predict(self, d):
         return self.model.predict(d)
